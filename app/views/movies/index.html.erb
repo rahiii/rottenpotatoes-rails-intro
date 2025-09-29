@@ -26,7 +26,7 @@
 
 <div id="movies">
   <% @movies.each do |movie| %>
-    <div class="movie">
+    <div class="movie" data-rating="<%= movie.rating %>">
       <h3><%= movie.title %></h3>
       <p><strong>Rating:</strong> <%= movie.rating %></p>
       <p><strong>Release Date:</strong> <%= movie.release_date %></p>

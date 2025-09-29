@@ -12,7 +12,7 @@ class MoviesController < ApplicationController
     # If new params are provided (user clicked refresh or changed filters)
     if params.key?(:ratings) || params.key?(:sort_by)
       # Handle rating filtering
-      if params[:ratings].present?
+      if params[:ratings].present? && params[:ratings].keys.any?
         @ratings_to_show = params[:ratings].keys
       else
         # If no ratings are checked, show all ratings (per assignment requirements)
@@ -38,6 +38,9 @@ class MoviesController < ApplicationController
 
     # Get movies, filtered + sorted
     @movies = Movie.with_ratings(@ratings_to_show).sorted(@sort_by)
+    
+    # Ensure at least the movies container is available even if no movies
+    @movies ||= []
   end
 
   def new
