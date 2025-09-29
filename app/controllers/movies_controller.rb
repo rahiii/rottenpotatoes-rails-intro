@@ -8,29 +8,28 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings = Movie.all_ratings
-    
-    # Check if user is providing new filter/sort parameters
+
+    # If new params are provided (user clicked refresh or changed filters)
     if params.key?(:ratings) || params.key?(:sort_by)
-      # User is actively filtering/sorting - save current settings to session
-      @ratings_to_show = params[:ratings].present? ? params[:ratings].keys : []
+      @ratings_to_show = params[:ratings].present? ? params[:ratings].keys : @all_ratings
       @sort_by = params[:sort_by]
-      
-      # Save to session (convert array to hash for session storage compatibility)
-      session[:ratings] = @ratings_to_show.empty? ? {} : Hash[@ratings_to_show.map { |r| [r, '1'] }]
+
+      # Save current settings in session
+      session[:ratings] = Hash[@ratings_to_show.map { |r| [r, '1'] }]
       session[:sort_by] = @sort_by
     else
-      # User navigated back without params - restore from session
+      # No params → restore from session or fall back to defaults
       if session[:ratings].present?
         @ratings_to_show = session[:ratings].keys
       else
-        @ratings_to_show = @all_ratings  # Default to all ratings
+        @ratings_to_show = @all_ratings
         session[:ratings] = Hash[@all_ratings.map { |r| [r, '1'] }]
       end
-      
+
       @sort_by = session[:sort_by]
     end
 
-    # Filter and sort movies
+    # Get movies, filtered + sorted
     @movies = Movie.with_ratings(@ratings_to_show).sorted(@sort_by)
   end
 
@@ -63,8 +62,7 @@ class MoviesController < ApplicationController
   end
 
   private
-  # Making "internal" methods private is not required, but is a common practice.
-  # This helps make clear which methods respond to requests, and which ones do not.
+
   def movie_params
     params.require(:movie).permit(:title, :rating, :description, :release_date)
   end
