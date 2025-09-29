@@ -11,7 +11,14 @@ class MoviesController < ApplicationController
 
     # If new params are provided (user clicked refresh or changed filters)
     if params.key?(:ratings) || params.key?(:sort_by)
-      @ratings_to_show = params[:ratings].present? ? params[:ratings].keys : @all_ratings
+      # Handle rating filtering
+      if params[:ratings].present?
+        @ratings_to_show = params[:ratings].keys
+      else
+        # If no ratings are checked, show all ratings (per assignment requirements)
+        @ratings_to_show = @all_ratings
+      end
+      
       @sort_by = params[:sort_by]
 
       # Save current settings in session
