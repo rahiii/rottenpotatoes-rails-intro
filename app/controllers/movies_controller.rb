@@ -12,8 +12,11 @@ class MoviesController < ApplicationController
     # Get selected ratings from params or default to all ratings
     @ratings_to_show = params[:ratings].present? ? params[:ratings].keys : @all_ratings
     
-    # Filter movies based on selected ratings
-    @movies = Movie.with_ratings(@ratings_to_show)
+    # Get sort column from params
+    @sort_by = params[:sort_by]
+    
+    # Filter and sort movies
+    @movies = Movie.with_ratings(@ratings_to_show).sorted(@sort_by)
   end
 
   def new

@@ -10,4 +10,12 @@ class Movie < ActiveRecord::Base
       all
     end
   end
+
+  def self.sorted(sort_column)
+    if sort_column.present?
+      order(sort_column)
+    else
+      all
+    end
+  end
 end
