@@ -1,79 +1,55 @@
-class MoviesController < ApplicationController
+<!--  This file is app/views/movies/index.html.erb -->
+<h2>All Movies</h2>
 
-  def show
-    id = params[:id] # retrieve movie ID from URI route
-    @movie = Movie.find(id) # look up movie by unique ID
-    # will render app/views/movies/show.<extension> by default
-  end
+<%#  Part 1: Start here... %>
+<%= form_tag movies_path, method: :get, id: 'ratings_form', local: true do %>
+  Include:
+  <% @all_ratings.each do |rating| %>
+    <div class="form-check  form-check-inline">
+      <%= check_box_tag "ratings[#{rating}]", "1", @ratings_to_show.include?(rating), class: 'form-check-input', id: "ratings_#{rating}" %>
+      <%= label_tag "ratings[#{rating}]", rating, class: 'form-check-label' %>
+    </div>
+  <% end %>
+  
+  <div>
+    <label class="form-label me-2" for="sort_by">Sort by:</label>
+    <%= select_tag :sort_by,
+                   options_for_select([["Title", "title"],
+                                       ["Release date", "release_date"]],
+                                       @sort_by),
+                   id:    "sort_by",
+                   class: "form-select d-inline w-auto" %>
+  </div>
+  
+  <%= submit_tag 'Refresh', id: 'ratings_submit', class: 'btn btn-primary' %>
+<% end %>
 
-  def index
-    @all_ratings = Movie.all_ratings
-
-    # If new params are provided (user clicked refresh or changed filters)
-    if params.key?(:ratings) || params.key?(:sort_by)
-      # Handle rating filtering
-      if params[:ratings].present? && params[:ratings].keys.any?
-        @ratings_to_show = params[:ratings].keys
-      else
-        # If no ratings are checked, show all ratings (per assignment requirements)
-        @ratings_to_show = @all_ratings
-      end
-      
-      @sort_by = params[:sort_by]
-
-      # Save current settings in session
-      session[:ratings] = Hash[@ratings_to_show.map { |r| [r, '1'] }]
-      session[:sort_by] = @sort_by
-    else
-      # No params → restore from session or fall back to defaults
-      if session[:ratings].present?
-        @ratings_to_show = session[:ratings].keys
-      else
-        @ratings_to_show = @all_ratings
-        session[:ratings] = Hash[@all_ratings.map { |r| [r, '1'] }]
-      end
-
-      @sort_by = session[:sort_by]
-    end
-
-    # Get movies, filtered + sorted
-    @movies = Movie.with_ratings(@ratings_to_show).sorted(@sort_by)
-    
-    # Ensure at least the movies container is available even if no movies
-    @movies ||= []
-  end
-
-  def new
-    # default: render 'new' template
-  end
-
-  def create
-    @movie = Movie.create!(movie_params)
-    flash[:notice] = "#{@movie.title} was successfully created."
-    redirect_to movies_path
-  end
-
-  def edit
-    @movie = Movie.find params[:id]
-  end
-
-  def update
-    @movie = Movie.find params[:id]
-    @movie.update_attributes!(movie_params)
-    flash[:notice] = "#{@movie.title} was successfully updated."
-    redirect_to movie_path(@movie)
-  end
-
-  def destroy
-    @movie = Movie.find(params[:id])
-    @movie.destroy
-    flash[:notice] = "Movie '#{@movie.title}' deleted."
-    redirect_to movies_path
-  end
-
-  private
-
-  def movie_params
-    params.require(:movie).permit(:title, :rating, :description, :release_date)
-  end
-end
+<table class="table table-striped col-md-12" id="movies">
+  <thead>
+    <tr>
+      <th>Movie Title</th>
+      <th>Rating</th>
+      <th>Release Date</th>
+      <th>More Info</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @movies.each do |movie| %>
+      <tr class="movie">
+        <td>
+          <%= movie.title %>
+        </td>
+        <td>
+          <%= movie.rating %>
+        </td>
+        <td>
+          <%= movie.release_date %>
+        </td>
+        <td>
+          <%= link_to "More about #{movie.title}", movie_path(movie) %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= link_to 'Add new movie', new_movie_path, :class => 'btn btn-primary' %>
