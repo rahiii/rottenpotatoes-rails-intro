@@ -9,12 +9,27 @@ class MoviesController < ApplicationController
   def index
     @all_ratings = Movie.all_ratings
     
-    # Get selected ratings from params or default to all ratings
-    @ratings_to_show = params[:ratings].present? ? params[:ratings].keys : @all_ratings
-    
-    # Get sort column from params
-    @sort_by = params[:sort_by]
-    
+    # Check if user is providing new filter/sort parameters
+    if params.key?(:ratings) || params.key?(:sort_by)
+      # User is actively filtering/sorting - save current settings to session
+      @ratings_to_show = params[:ratings].present? ? params[:ratings].keys : []
+      @sort_by = params[:sort_by]
+      
+      # Save to session (convert array to hash for session storage compatibility)
+      session[:ratings] = @ratings_to_show.empty? ? {} : Hash[@ratings_to_show.map { |r| [r, '1'] }]
+      session[:sort_by] = @sort_by
+    else
+      # User navigated back without params - restore from session
+      if session[:ratings].present?
+        @ratings_to_show = session[:ratings].keys
+      else
+        @ratings_to_show = @all_ratings  # Default to all ratings
+        session[:ratings] = Hash[@all_ratings.map { |r| [r, '1'] }]
+      end
+      
+      @sort_by = session[:sort_by]
+    end
+
     # Filter and sort movies
     @movies = Movie.with_ratings(@ratings_to_show).sorted(@sort_by)
   end
