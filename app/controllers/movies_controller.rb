@@ -7,7 +7,13 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+    @all_ratings = Movie.all_ratings
+    
+    # Get selected ratings from params or default to all ratings
+    @ratings_to_show = params[:ratings].present? ? params[:ratings].keys : @all_ratings
+    
+    # Filter movies based on selected ratings
+    @movies = Movie.with_ratings(@ratings_to_show)
   end
 
   def new
